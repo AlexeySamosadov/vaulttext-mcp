@@ -1,0 +1,17 @@
+{
+  "name": "vaulttext-mcp",
+  "version": "0.1.0",
+  "description": "MCP server giving AI agents local text tools — stats, extract emails/URLs/numbers, find-replace, case & slug. Text never leaves the machine.",
+  "type": "module",
+  "main": "server.mjs",
+  "bin": { "vaulttext-mcp": "server.mjs" },
+  "files": ["server.mjs", "lib.mjs", "README.md"],
+  "scripts": { "test": "node smoke.mjs" },
+  "keywords": ["mcp", "model-context-protocol", "mcp-server", "text", "regex", "privacy", "claude", "ai-agent", "ai-tools"],
+  "license": "MIT",
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.4.3"
+  }
+}
