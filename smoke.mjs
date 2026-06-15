@@ -14,7 +14,7 @@ const ok = (cond, m) => { console.log((cond ? "PASS" : "FAIL") + " — " + m); i
 await writeFile(src, "Hello World. Email me at a@b.com or visit https://x.io please. Two cats.");
 
 const stats = await textStats(src);
-ok(/words: 13/.test(stats), "text_stats words: " + (stats.match(/words: \d+/) || [])[0]);
+ok(/words: 12/.test(stats), "text_stats words: " + (stats.match(/words: \d+/) || [])[0]);
 
 const em = await textExtract(src, "emails");
 ok(/a@b\.com/.test(em), "text_extract emails: " + em.split("\n").pop());
