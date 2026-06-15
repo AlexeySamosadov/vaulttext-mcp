@@ -31,3 +31,13 @@ Add to `claude_desktop_config.json`:
 ```
 
 MIT licensed.
+
+## Pro tools — one-time crypto license, no subscription
+Free tools work forever. Pro tools (`text_redact`, `text_sort_lines`, `text_dedupe_lines`) need a license:
+
+1. Send **9 USDC on Base** to `0xe339997037C7e1C81829fA3e110d3e82B4bDd48E`
+2. [Open an issue](https://github.com/AlexeySamosadov/vaulttext-mcp/issues/new) with your **tx hash** + **email**.
+3. A bot verifies the payment on-chain and replies with your **license key**.
+4. Set `VAULTTEXT_LICENSE` in your MCP config env and restart.
+
+Offline ECDSA-signed token — verified locally, never phoned home.

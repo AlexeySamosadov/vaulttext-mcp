@@ -6,11 +6,18 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { textStats, textExtract, textReplace, textCase } from "./lib.mjs";
+import { textStats, textExtract, textReplace, textCase, textRedact, textSortLines, textDedupeLines } from "./lib.mjs";
+import { licenseStatus, upgradeMessage } from "./license.mjs";
 
-const server = new McpServer({ name: "vaulttext-mcp", version: "0.1.0" });
+const server = new McpServer({ name: "vaulttext-mcp", version: "0.2.0" });
 const text = t => ({ content: [{ type: "text", text: t }] });
 const wrap = fn => async (args) => {
+  try { return text(await fn(args)); }
+  catch (e) { return { isError: true, content: [{ type: "text", text: "Error: " + e.message }] }; }
+};
+const pro = fn => async (args) => {
+  const st = await licenseStatus();
+  if (!st.pro) return text(upgradeMessage(st.reason));
   try { return text(await fn(args)); }
   catch (e) { return { isError: true, content: [{ type: "text", text: "Error: " + e.message }] }; }
 };
@@ -51,5 +58,37 @@ server.registerTool("text_case", {
     output: z.string().describe("Absolute path to write the result")
   }
 }, wrap(({ input, mode, output }) => textCase(input, mode, output)));
+
+/* ---- Pro tools (one-time 9 USDC license; see README) ---- */
+
+server.registerTool("text_redact", {
+  title: "Redact text (Pro)",
+  description: "Pro: replace all emails, URLs, or numbers in a local text file with [REDACTED] (privacy).",
+  inputSchema: {
+    input: z.string().describe("Absolute path to the source text file"),
+    kind: z.enum(["emails", "urls", "numbers"]).describe("What to redact"),
+    output: z.string().describe("Absolute path to write the redacted text")
+  }
+}, pro(({ input, kind, output }) => textRedact(input, kind, output)));
+
+server.registerTool("text_sort_lines", {
+  title: "Sort lines (Pro)",
+  description: "Pro: sort the lines of a local text file, optionally descending and/or unique.",
+  inputSchema: {
+    input: z.string().describe("Absolute path to the source text file"),
+    order: z.enum(["asc", "desc"]).optional().describe("Sort order (default asc)"),
+    unique: z.boolean().optional().describe("Remove duplicate lines after sorting"),
+    output: z.string().describe("Absolute path to write the result")
+  }
+}, pro(({ input, order, unique, output }) => textSortLines(input, output, order, unique)));
+
+server.registerTool("text_dedupe_lines", {
+  title: "Dedupe lines (Pro)",
+  description: "Pro: remove duplicate lines from a local text file, preserving order.",
+  inputSchema: {
+    input: z.string().describe("Absolute path to the source text file"),
+    output: z.string().describe("Absolute path to write the result")
+  }
+}, pro(({ input, output }) => textDedupeLines(input, output)));
 
 await server.connect(new StdioServerTransport());

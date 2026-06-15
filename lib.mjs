@@ -60,3 +60,38 @@ export async function textCase(input, mode, output) {
   await writeFile(output, out);
   return `Wrote ${mode}-cased text → ${output}`;
 }
+
+/* ---- Pro tools (require a valid VAULTTEXT_LICENSE) ---- */
+
+export async function textRedact(input, kind, output) {
+  const base = PATTERNS[kind];
+  if (!base) throw new Error("kind must be one of: emails, urls, numbers");
+  const t = await readFile(input, "utf8");
+  let count = 0;
+  const out = t.replace(new RegExp(base.source, "g"), () => { count++; return "[REDACTED]"; });
+  await writeFile(output, out);
+  return `Redacted ${count} ${kind} → ${output}`;
+}
+
+function splitLines(t) {
+  const lines = t.split(/\r\n|\r|\n/);
+  if (lines.length && lines[lines.length - 1] === "") lines.pop();
+  return lines;
+}
+
+export async function textSortLines(input, output, order, unique) {
+  let lines = splitLines(await readFile(input, "utf8"));
+  lines.sort((a, b) => a.localeCompare(b));
+  if (order === "desc") lines.reverse();
+  if (unique) lines = [...new Set(lines)];
+  await writeFile(output, lines.join("\n") + "\n");
+  return `Sorted ${lines.length} line(s)${unique ? " (unique)" : ""} ${order || "asc"} → ${output}`;
+}
+
+export async function textDedupeLines(input, output) {
+  const lines = splitLines(await readFile(input, "utf8"));
+  const seen = new Set(), kept = [];
+  for (const l of lines) { if (!seen.has(l)) { seen.add(l); kept.push(l); } }
+  await writeFile(output, kept.join("\n") + "\n");
+  return `Removed ${lines.length - kept.length} duplicate line(s); ${kept.length} → ${output}`;
+}
